@@ -11,8 +11,8 @@
 //% groups=['作品の取り込み', '初期化と実行', 'データ入力']
 namespace TukubaLantern {
 
-    let strip: neopixel.Strip = null
-    const userInits: Array<() => void> = []
+    let strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
+    let userInits: Array<() => void> = []
     let mode: "U" | "P" = "U"
     let groupId: string = "1"
     let radioGroup: number = 200
@@ -43,7 +43,7 @@ namespace TukubaLantern {
         }
     }
 
-    function lanternIntervalBase(n = 300): void {
+    function lanternInterval(n = 300): void {
         intervalBase = Math.min(0, Math.max(5000, n))
     }
 
@@ -53,7 +53,7 @@ namespace TukubaLantern {
     //% radioGroup.defl=200 radioGroup.min=0 radioGroup.min=255
     //% group="初期化と実行"
     //% weight=19
-    export function lanternInitBlock(groupId: string, radioGroup: number): void {
+    export function lanternInit(groupId: string, radioGroup: number): void {
         lanternGroupID(groupId)
         lanternMusenGroup(radioGroup)
         // 無線で受け取った文字列をパースさせる
@@ -73,7 +73,7 @@ namespace TukubaLantern {
     //% block="ランタンループ処理"
     //% group="初期化と実行"
     //% weight=18
-    export function lanternLoopBlock(): void {
+    export function lanternLoop(): void {
         if (mode == "P") {
             if (colors.length === 0) {
                 inputData("U")
@@ -88,7 +88,7 @@ namespace TukubaLantern {
     //% block="作品の「最初だけ」"
     //% group="作品の取り込み"
     //% weight=29
-    export function userInitBlock(f: () => void) {
+    export function userInit(f: () => void) {
         userInits.push(f)
     }
 
@@ -96,7 +96,7 @@ namespace TukubaLantern {
     //% block="作品の「ずっと」"
     //% group="作品の取り込み"
     //% weight=28
-    export function userLoopBlock(f: () => void) {
+    export function userLoop(f: () => void) {
         basic.forever(() => {
             if (mode == "U") {
                 f()
