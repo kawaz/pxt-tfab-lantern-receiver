@@ -8,10 +8,10 @@
  */
 //% weight=100 color=#0fbc11 icon=""
 //% block="筑波ランタン"
-//% groups=['作品の取り込み', '初期化と実行', 'データ入力']
+//% groups=['初期化と実行', '作品の取り込み', 'データ入力']
 namespace TukubaLantern {
 
-    let strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
+    let strip: neopixel.Strip = null
     let userInits: Array<() => void> = []
     let mode: "U" | "P" = "U"
     let groupId: string = "1"
@@ -54,6 +54,11 @@ namespace TukubaLantern {
     //% group="初期化と実行"
     //% weight=19
     export function lanternInit(groupId: string, radioGroup: number): void {
+        if(strip != null) {
+            // 初期化は1回のみ
+            return
+        }
+        strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
         lanternGroupID(groupId)
         lanternMusenGroup(radioGroup)
         // 無線で受け取った文字列をパースさせる
@@ -67,12 +72,16 @@ namespace TukubaLantern {
         basic.pause(2000)
         // ユーザモードにする
         inputData("U")
+        // イベントループの登録（これにより「ずっと」ブロックの作成が不要になる）
+        basic.forever(lanternLoop)
     }
 
     //% blockId="lantern_loop"
     //% block="ランタンループ処理"
     //% group="初期化と実行"
     //% weight=18
+    //% advanced=true
+    //% deprecated=true
     export function lanternLoop(): void {
         if (mode == "P") {
             if (colors.length === 0) {
