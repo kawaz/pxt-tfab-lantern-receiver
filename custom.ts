@@ -11,7 +11,7 @@
 //% groups=['初期化と実行', '作品の取り込み', 'データ入力']
 namespace TukubaLantern {
 
-    let strip: neopixel.Strip = null
+    let strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
     let userInits: Array<() => void> = []
     let mode: "U" | "P" = "U"
     let groupId: string = "1"
