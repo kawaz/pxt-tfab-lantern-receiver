@@ -8,7 +8,7 @@
  */
 //% weight=100 color=#0fbc11 icon=""
 //% block="筑波ランタン"
-//% groups=['初期化と実行', '作品の取り込み', 'データ入力']
+//% groups=['初期化と実行', 'データ入力']
 namespace TukubaLantern {
 
     let initialized = false
@@ -20,7 +20,8 @@ namespace TukubaLantern {
     let groupId: string = "1"
     let radioGroup: number = 200
     let intervalBase: number = 300
-    let interval: number = intervalBase;
+    let intervalN: number = 1;
+    let interval: number = intervalBase * intervalN;
     let colors: Array<number> = [];
     let colorMap = [
         neopixel.rgb(0, 0, 0),
@@ -33,8 +34,9 @@ namespace TukubaLantern {
         neopixel.rgb(255, 255, 255),
     ]
 
-    function lanternMusenGroup(rg: number): void {
-        radioGroup = Math.min(1, Math.max(255, Math.floor(rg)))
+    function lanternRadioGroup(rg: number): void {
+        radioGroup = Math.max(1, Math.min(255, Math.floor(rg)))
+        radio.setGroup(radioGroup)
     }
 
     function lanternGroupID(g: string): void {
@@ -47,32 +49,42 @@ namespace TukubaLantern {
     }
 
     function lanternIntervalBase(n: number): number {
-        intervalBase = Math.min(0, Math.max(5000, n))
+        intervalBase = Math.max(0, Math.min(5000, n))
+        interval = intervalBase * intervalN
         return intervalBase
     }
 
     //% blockId="lantern_init"
-    //% block="筑波ランタン:初期化 グループID=%groupId || インターバルベース(ms)=%intervalBase 無線グループ=%radioGroup"
+    //% block="筑波ランタン:初期化 グループID=%groupId || インターバルベース(ms)=%intervalBase_ 無線グループ=%radioGroup_"
     //% expandableArgumentMode="toggle"
     //% group="初期化と実行"
     //% weight=19
-    //% groupId.defl="1"
-    //% intervalBase.defl=300 intervalBase.min=0 intervalBase.max=5000
-    //% radioGroup.defl=200 radioGroup.min=0 radioGroup.max=255
-    export function lanternInit(groupId: string, intervalBase_?: number, radioGroup_?: number): void {
+    //% groupId_.defl="1"
+    //% intervalBase_.defl=300 intervalBase_.min=100 intervalBase_.max=5000
+    //% radioGroup_.defl=200 radioGroup_.min=1 radioGroup_.max=255
+    export function lanternInit(groupId_: string, intervalBase_?: number, radioGroup_?: number): void {
         if (initialized) {
             return
         }
-        lanternGroupID(groupId)
-        lanternMusenGroup(radioGroup_)
+        // グループID初期化
+        lanternGroupID(groupId_)
+        // インターバル初期化
+        if (intervalBase_ < 100) {
+            intervalBase_ = 100
+        }
+        lanternIntervalBase(intervalBase_)
+        // 無線グループ初期化
+        if (radioGroup_ < 1) {
+            radioGroup_ = 200
+        }
+        lanternRadioGroup(radioGroup_)
         // 無線で受け取った文字列をパースさせる
         radio.onReceivedString(inputData)
-        // インターバル初期化
-        interval = intervalBase_
         // LEDの初期化
         strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
+        strip.showColor(neopixel.rgb(0, 0, 0))
         // 起動時にグループIDを表示する
-        basic.showString(groupId)
+        basic.showString(groupId_)
         basic.pause(500)
         // ユーザモードにしておく
         inputData("U")
@@ -115,16 +127,6 @@ namespace TukubaLantern {
         }
     }
 
-    //% blockId="lantern_userInit"
-    //% block="筑波ランタン:作品の「最初だけ」"
-    //% group="作品の取り込み"
-    //% weight=29
-    //% deprecated=true
-    //% advanced=true
-    export function userInit(f: () => void): void {
-        userInits.push(f)
-    }
-
     //% blockId="lantern_inputData"
     //% block="筑波ランタン:データ入力 %data"
     //% group="データ入力"
@@ -132,12 +134,15 @@ namespace TukubaLantern {
     export function inputData(data: string) {
         const c0 = data.substr(0, 1)
         if (c0 === "P") {
+            strip.showColor(neopixel.rgb(0, 0, 0))
             mode = "P"
             return
         }
         if (c0 === "U") {
             if (mode === "P") {
                 // ユーザモードへの復帰はリセットで行う。
+                // リセットだけだとLEDが最後の状態のままになってしまうので消しておく
+                strip.showColor(neopixel.rgb(0, 0, 0))
                 // 作品の「最初だけ」をグローバルスコープで実行する方法が他に無い為
                 control.reset()
             }
@@ -149,27 +154,29 @@ namespace TukubaLantern {
         if (c0 === "0" || c0 === groupId) {
             const c1 = data.substr(1, 1)
             if ("0123456789".includes(c1)) {
-                interval = intervalBase * parseInt(c1)
+                intervalN = Math.max(1, Math.min(9, parseInt(c1)))
             } else {
-                interval = intervalBase
+                intervalN = 1
             }
-            // 現在プログラムモードだった場合に新しい色が消費されないようPモードを停止しておく
-            if (mode == "P") {
-                mode = "U"
-            }
-            colors = data.substr(2).split("").map(c => colorMap[parseInt(c)])
+            interval = intervalBase * intervalN
         }
+        // 現在プログラムモードだった場合に新しい色が消費されないようPモードを停止しておく
+        if (mode == "P") {
+            mode = "U"
+        }
+        colors = data.substr(2).split("").map(c => colorMap[parseInt(c)])
     }
-
 
     export enum UserLoops {
-        L1, L2, L3, L4, L5, L6, L7, L8, L9, L10
+        L1, L2, L3, L4, L5, L6, L7, L8, L9,
+        L10, L11, L12, L13, L14, L15, L16, L17, L18, L19, L20,
     }
 
-    //% group="作品の取り込み" weight=29
+    //% group="初期化と実行" weight=15
+    //% blockId="lantern_userLoop"
     //% block="筑波ランタン:作品の「ずっと」$zutto"
     //% zutto.delf=L1
-    export function userLoop4(zutto: UserLoops, f:()=>void) {
+    export function userLoop(zutto: UserLoops, f: () => void) {
         basic.forever(() => {
             if (userInitialized && mode === "U") {
                 f()
