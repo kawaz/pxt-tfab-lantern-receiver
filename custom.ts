@@ -13,7 +13,8 @@ namespace TukubaLantern {
 
     let initialized = false
     let userInitialized = false
-    let strip: neopixel.Strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
+    let playStarted = false;
+    let strip: neopixel.Strip = null
     let userInits: Array<() => void> = []
     let mode: "U" | "P" = "U"
     let groupId: string = "1"
@@ -21,15 +22,15 @@ namespace TukubaLantern {
     let intervalBase: number = 300
     let interval: number = intervalBase;
     let colors: Array<number> = [];
-    let colorMap: [
-        0x000000,
-        0xff0000,
-        0x00ff00,
-        0x0000ff,
-        0xffff00,
-        0xff00ff,
-        0x00ffff,
-        0xffffff
+    let colorMap = [
+        neopixel.rgb(0, 0, 0),
+        neopixel.rgb(255, 0, 0),
+        neopixel.rgb(0, 255, 0),
+        neopixel.rgb(0, 0, 255),
+        neopixel.rgb(255, 255, 0),
+        neopixel.rgb(0, 255, 255),
+        neopixel.rgb(255, 255, 0),
+        neopixel.rgb(255, 255, 255),
     ]
 
     function lanternMusenGroup(rg: number): void {
@@ -51,7 +52,7 @@ namespace TukubaLantern {
     }
 
     //% blockId="lantern_init"
-    //% block="筑波ランタン: 初期化 グループID=%groupId || インターバルベース(ms)=%intervalBase 無線グループ=%radioGroup"
+    //% block="筑波ランタン:初期化 グループID=%groupId || インターバルベース(ms)=%intervalBase 無線グループ=%radioGroup"
     //% expandableArgumentMode="toggle"
     //% group="初期化と実行"
     //% weight=19
@@ -59,7 +60,7 @@ namespace TukubaLantern {
     //% intervalBase.defl=300 intervalBase.min=0 intervalBase.max=5000
     //% radioGroup.defl=200 radioGroup.min=0 radioGroup.max=255
     export function lanternInit(groupId: string, intervalBase?: number, radioGroup?: number): void {
-        if (!initialized) {
+        if (initialized) {
             return
         }
         lanternGroupID(groupId)
@@ -72,7 +73,7 @@ namespace TukubaLantern {
         strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
         // 起動時にグループIDを表示する
         basic.showString(groupId)
-        basic.pause(2000)
+        basic.pause(500)
         // ユーザモードにしておく
         inputData("U")
         // イベントループの登録（これにより「ずっと」ブロックの作成が不要になる）
@@ -93,10 +94,18 @@ namespace TukubaLantern {
     //% block="筑波ランタン:ループ処理"
     //% group="初期化と実行"
     //% weight=17
-    //% advanced=true
     //% deprecated=true
+    //% advanced=true
     export function lanternLoop(): void {
-        if (mode == "P") {
+        if (!initialized) {
+            return
+        }
+        if (mode === "P") {
+            if(!playStarted) {
+                // プログラムモードが始まったらLEDの表示をPにする
+                basic.showString("P")
+                playStarted = true
+            }
             if (colors.length === 0) {
                 inputData("U")
                 return
@@ -149,14 +158,18 @@ namespace TukubaLantern {
         }
         // 0 … 全てのグループが対象
         // 1-9 … 対象のランタングループ
-        const c1 = data.substr(1, 1)
         if (c0 === "0" || c0 === groupId) {
+            const c1 = data.substr(1, 1)
             if ("0123456789".includes(c1)) {
                 interval = intervalBase * parseInt(c1)
             } else {
                 interval = intervalBase
             }
-            colors = data.substr(2).split().map(c => colorMap[parseInt(c)])
+            // 現在プログラムモードだった場合に新しい色が消費されないようPモードを停止しておく
+            if (mode == "P") {
+                mode = "U"
+            }
+            colors = data.substr(2).split("").map(c => colorMap[parseInt(c)])
         }
     }
 
