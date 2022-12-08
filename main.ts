@@ -4,7 +4,6 @@ input.onButtonPressed(Button.A, function () {
 })
 TukubaLantern.userLoop(TukubaLantern.UserLoops.L1, function () {
     basic.pause(200)
-    basic.showNumber(randint(0, 9))
     strip.shift(1)
 })
 input.onButtonPressed(Button.AB, function () {

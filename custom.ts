@@ -16,12 +16,12 @@ namespace TukubaLantern {
     let playStarted = false;
     let stripPMode: neopixel.Strip = null
     let userInits: Array<() => void> = []
-    let mode: "U" | "P" = "U"
-    let groupId: string = "1"
-    let radioGroup: number = 200
-    let intervalBase: number = 300
-    let intervalN: number = 1;
-    let interval: number = intervalBase * intervalN;
+    export let mode: "U" | "P" = "U"
+    export let groupId: string = "1"
+    export let radioGroup: number = 200
+    export let intervalBase: number = 300
+    export let intervalN: number = 1;
+    export let interval: number = intervalBase * intervalN;
     let colors: Array<number> = [];
     let colorMap = [
         neopixel.rgb(0, 0, 0),
@@ -34,24 +34,32 @@ namespace TukubaLantern {
         neopixel.rgb(255, 255, 255),
     ]
 
-    function lanternRadioGroup(rg: number): void {
+    function lanternRadioGroup(rg: number) {
         radioGroup = Math.max(1, Math.min(255, Math.floor(rg)))
         radio.setGroup(radioGroup)
+        return radioGroup
     }
 
-    function lanternGroupID(g: string): void {
+    function lanternGroupID(g: string) {
         g = g.substr(0, 1)
         if (g.length == 1 && "123456789".includes(g)) {
             groupId = g
         } else {
             groupId = "1"
         }
+        return groupId
     }
 
-    function lanternIntervalBase(n: number): number {
+    function lanternIntervalBase(n: number) {
         intervalBase = Math.max(0, Math.min(5000, n))
         interval = intervalBase * intervalN
         return intervalBase
+    }
+
+    function lanternIntervalN(n: number) {
+        intervalN = n
+        interval = intervalBase * intervalN
+        return intervalN
     }
 
     //% blockId="lantern_init"
@@ -133,13 +141,13 @@ namespace TukubaLantern {
     //% weight=30
     export function inputData(data: string) {
         const c0 = data.substr(0, 1)
-        if (c0 === "P") {
+        if (c0 == "P") {
             stripPMode.showColor(neopixel.rgb(0, 0, 0))
             mode = "P"
             return
         }
-        if (c0 === "U") {
-            if (mode === "P") {
+        if (c0 == "U") {
+            if (mode == "P") {
                 // ユーザモードへの復帰はリセットで行う。
                 // リセットだけだとLEDが最後の状態のままになってしまうので消しておく
                 stripPMode.showColor(neopixel.rgb(0, 0, 0))
@@ -151,7 +159,7 @@ namespace TukubaLantern {
         }
         // 0 … 全てのグループが対象
         // 1-9 … 対象のランタングループ
-        if (c0 === "0" || c0 === groupId) {
+        if (c0 == "0" || c0 == groupId) {
             const c1 = data.substr(1, 1)
             if ("0123456789".includes(c1)) {
                 intervalN = Math.max(1, Math.min(9, parseInt(c1)))
@@ -159,12 +167,12 @@ namespace TukubaLantern {
                 intervalN = 1
             }
             interval = intervalBase * intervalN
+            // 現在プログラムモードだった場合に新しい色が消費されないようPモードを停止しておく
+            if (mode == "P") {
+                mode = "U"
+            }
+            colors = data.substr(2).split("").map(c => colorMap[parseInt(c)])
         }
-        // 現在プログラムモードだった場合に新しい色が消費されないようPモードを停止しておく
-        if (mode == "P") {
-            mode = "U"
-        }
-        colors = data.substr(2).split("").map(c => colorMap[parseInt(c)])
     }
 
     export enum UserLoops {
