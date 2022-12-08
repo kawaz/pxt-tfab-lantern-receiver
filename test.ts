@@ -8,10 +8,12 @@ input.onButtonPressed(Button.A, function () {
     radio.sendString("P")
 })
 TukubaLantern.userLoop(TukubaLantern.UserLoops.L2, function () {
+    basic.showIcon(IconNames.No)
     basic.pause(700)
     strip.showColor(neopixel.colors(NeoPixelColors.Violet))
 })
 TukubaLantern.userLoop(TukubaLantern.UserLoops.L1, function () {
+    basic.showIcon(IconNames.Heart)
     basic.pause(1000)
     if (Math.randomBoolean()) {
         strip.showRainbow(1, 360)
