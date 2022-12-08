@@ -59,16 +59,16 @@ namespace TukubaLantern {
     //% groupId.defl="1"
     //% intervalBase.defl=300 intervalBase.min=0 intervalBase.max=5000
     //% radioGroup.defl=200 radioGroup.min=0 radioGroup.max=255
-    export function lanternInit(groupId: string, intervalBase?: number, radioGroup?: number): void {
+    export function lanternInit(groupId: string, intervalBase_?: number, radioGroup_?: number): void {
         if (initialized) {
             return
         }
         lanternGroupID(groupId)
-        lanternMusenGroup(radioGroup)
+        lanternMusenGroup(radioGroup_)
         // 無線で受け取った文字列をパースさせる
         radio.onReceivedString(inputData)
         // インターバル初期化
-        interval = intervalBase
+        interval = intervalBase_
         // LEDの初期化
         strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
         // 起動時にグループIDを表示する
@@ -101,7 +101,7 @@ namespace TukubaLantern {
             return
         }
         if (mode === "P") {
-            if(!playStarted) {
+            if (!playStarted) {
                 // プログラムモードが始まったらLEDの表示をPにする
                 basic.showString("P")
                 playStarted = true
@@ -123,18 +123,6 @@ namespace TukubaLantern {
     //% advanced=true
     export function userInit(f: () => void): void {
         userInits.push(f)
-    }
-
-    //% blockId="lantern_userLoop"
-    //% block="筑波ランタン:作品の「ずっと」"
-    //% group="作品の取り込み"
-    //% weight=28
-    export function userLoop(f: () => void): void {
-        basic.forever(() => {
-            if (userInitialized && mode === "U") {
-                f()
-            }
-        })
     }
 
     //% blockId="lantern_inputData"
@@ -171,6 +159,22 @@ namespace TukubaLantern {
             }
             colors = data.substr(2).split("").map(c => colorMap[parseInt(c)])
         }
+    }
+
+
+    export enum UserLoops {
+        L1, L2, L3, L4, L5, L6, L7, L8, L9, L10
+    }
+
+    //% group="作品の取り込み" weight=29
+    //% block="筑波ランタン:作品の「ずっと」$zutto"
+    //% zutto.delf=L1
+    export function userLoop4(zutto: UserLoops, f:()=>void) {
+        basic.forever(() => {
+            if (userInitialized && mode === "U") {
+                f()
+            }
+        })
     }
 
 }
