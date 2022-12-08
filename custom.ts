@@ -15,7 +15,7 @@ namespace TukubaLantern {
     let userInitialized = false
     let playStarted = false;
     let stripPMode: neopixel.Strip = null
-    let userInits: Array<() => void> = []
+    let userInit: () => void = null
     export let mode: "U" | "P" = "U"
     export let groupId: string = "1"
     export let radioGroup: number = 200
@@ -100,23 +100,23 @@ namespace TukubaLantern {
         basic.forever(lanternLoop)
         // 初期化完了フラグは最後に立てる
         initialized = true
+        // 作品の「最初だけ」を実行
+        if(userInit) {
+            userInit()
+        }
+        userInitialized = true
     }
 
     //% blockId="lantern_initialized"
     //% block="筑波ランタン:作品の初期化完了"
     //% group="初期化と実行"
     //% weight=18
+    //% deprecated=true
     export function lanternUserInitialized(): void {
         userInitialized = true
     }
 
-    //% blockId="lantern_loop"
-    //% block="筑波ランタン:ループ処理"
-    //% group="初期化と実行"
-    //% weight=17
-    //% deprecated=true
-    //% advanced=true
-    export function lanternLoop(): void {
+    function lanternLoop(): void {
         if (!initialized) {
             return
         }
@@ -197,4 +197,10 @@ namespace TukubaLantern {
         })
     }
 
+    //% group="初期化と実行" weight=16
+    //% blockId="lantern_userInit"
+    //% block="筑波ランタン:作品の「最初だけ」"
+    export function userInitBlock(f: () => void) {
+        userInit = f
+    }
 }
