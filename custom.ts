@@ -14,7 +14,7 @@ namespace TukubaLantern {
     let initialized = false
     let userInitialized = false
     let playStarted = false;
-    let strip: neopixel.Strip = null
+    let stripPMode: neopixel.Strip = null
     let userInits: Array<() => void> = []
     let mode: "U" | "P" = "U"
     let groupId: string = "1"
@@ -41,7 +41,7 @@ namespace TukubaLantern {
 
     function lanternGroupID(g: string): void {
         g = g.substr(0, 1)
-        if (0 < g.length && "123456789".includes(g)) {
+        if (g.length == 1 && "123456789".includes(g)) {
             groupId = g
         } else {
             groupId = "1"
@@ -55,7 +55,7 @@ namespace TukubaLantern {
     }
 
     //% blockId="lantern_init"
-    //% block="筑波ランタン:初期化 グループID=%groupId || インターバルベース(ms)=%intervalBase_ 無線グループ=%radioGroup_"
+    //% block="筑波ランタン:初期化 グループID=$groupId_ || インターバルベース(ms)=$intervalBase_ 無線グループ=$radioGroup_"
     //% expandableArgumentMode="toggle"
     //% group="初期化と実行"
     //% weight=19
@@ -81,8 +81,8 @@ namespace TukubaLantern {
         // 無線で受け取った文字列をパースさせる
         radio.onReceivedString(inputData)
         // LEDの初期化
-        strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
-        strip.showColor(neopixel.rgb(0, 0, 0))
+        stripPMode = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
+        stripPMode.showColor(neopixel.rgb(0, 0, 0))
         // 起動時にグループIDを表示する
         basic.showString(groupId_)
         basic.pause(500)
@@ -122,7 +122,7 @@ namespace TukubaLantern {
                 inputData("U")
                 return
             }
-            strip.showColor(colors.pop())
+            stripPMode.showColor(colors.pop())
             basic.pause(interval)
         }
     }
@@ -134,7 +134,7 @@ namespace TukubaLantern {
     export function inputData(data: string) {
         const c0 = data.substr(0, 1)
         if (c0 === "P") {
-            strip.showColor(neopixel.rgb(0, 0, 0))
+            stripPMode.showColor(neopixel.rgb(0, 0, 0))
             mode = "P"
             return
         }
@@ -142,7 +142,7 @@ namespace TukubaLantern {
             if (mode === "P") {
                 // ユーザモードへの復帰はリセットで行う。
                 // リセットだけだとLEDが最後の状態のままになってしまうので消しておく
-                strip.showColor(neopixel.rgb(0, 0, 0))
+                stripPMode.showColor(neopixel.rgb(0, 0, 0))
                 // 作品の「最初だけ」をグローバルスコープで実行する方法が他に無い為
                 control.reset()
             }

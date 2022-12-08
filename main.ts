@@ -4,6 +4,7 @@ input.onButtonPressed(Button.A, function () {
 })
 TukubaLantern.userLoop(TukubaLantern.UserLoops.L1, function () {
     basic.pause(200)
+    basic.showNumber(randint(0, 9))
     strip.shift(1)
 })
 input.onButtonPressed(Button.AB, function () {
@@ -15,7 +16,7 @@ input.onButtonPressed(Button.B, function () {
     radio.sendString("P")
 })
 let strip: neopixel.Strip = null
-TukubaLantern.lanternInit("2", 300, 200)
+TukubaLantern.lanternInit("3", 300, 200)
 strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
 strip.showBarGraph(255, 255)
 TukubaLantern.lanternUserInitialized()
