@@ -13,7 +13,7 @@ namespace TukubaLantern {
 
     let initialized = false
     let userInitialized = false
-    let strip: neopixel.Strip = null
+    let strip: neopixel.Strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
     let userInits: Array<() => void> = []
     let mode: "U" | "P" = "U"
     let groupId: string = "1"
@@ -45,18 +45,9 @@ namespace TukubaLantern {
         }
     }
 
-    export function lanternIntervalBase(n: number): number {
+    function lanternIntervalBase(n: number): number {
         intervalBase = Math.min(0, Math.max(5000, n))
         return intervalBase
-    }
-
-
-    //% shim=ENUM_GET
-    //% blockHidden=true
-    //% blockId=lantern_enum_groups
-    //% block="グループ $arg"
-    export function _groupEnumShim(arg: string) {
-        return arg;
     }
 
     //% blockId="lantern_init"
@@ -82,7 +73,7 @@ namespace TukubaLantern {
         // 起動時にグループIDを表示する
         basic.showString(groupId)
         basic.pause(2000)
-        // ユーザモードにする
+        // ユーザモードにしておく
         inputData("U")
         // イベントループの登録（これにより「ずっと」ブロックの作成が不要になる）
         basic.forever(lanternLoop)
@@ -131,7 +122,7 @@ namespace TukubaLantern {
     //% weight=28
     export function userLoop(f: () => void): void {
         basic.forever(() => {
-            if (userInitialized && mode == "U") {
+            if (userInitialized && mode === "U") {
                 f()
             }
         })
@@ -148,7 +139,7 @@ namespace TukubaLantern {
             return
         }
         if (c0 === "U") {
-            if (mode == "P") {
+            if (mode === "P") {
                 // ユーザモードへの復帰はリセットで行う。
                 // 作品の「最初だけ」をグローバルスコープで実行する方法が他に無い為
                 control.reset()
