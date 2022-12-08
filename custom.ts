@@ -93,7 +93,8 @@ namespace TukubaLantern {
         stripPMode.showColor(neopixel.rgb(0, 0, 0))
         // 起動時にグループIDを表示する
         basic.showString(groupId_)
-        basic.pause(500)
+        basic.pause(200)
+        basic.clearScreen()
         // ユーザモードにしておく
         inputData("U")
         // イベントループの登録（これにより「ずっと」ブロックの作成が不要になる）
