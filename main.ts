@@ -15,7 +15,7 @@ input.onButtonPressed(Button.B, function () {
     radio.sendString("P")
 })
 let strip: neopixel.Strip = null
-TukubaLantern.lanternInit("3", 300, 200)
+TukubaLantern.lanternInit("1", 300, 200)
 strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
 strip.showBarGraph(255, 255)
 TukubaLantern.lanternUserInitialized()

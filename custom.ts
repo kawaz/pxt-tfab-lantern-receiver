@@ -127,6 +127,7 @@ namespace TukubaLantern {
                 playStarted = true
             }
             if (colors.length === 0) {
+                // 色データが無くなったらユーザモードに移行
                 inputData("U")
                 return
             }
@@ -142,6 +143,10 @@ namespace TukubaLantern {
     export function inputData(data: string) {
         const c0 = data.substr(0, 1)
         if (c0 == "P") {
+            if(colors.length == 0) {
+                // 色データが無ければプログラムモードに移行しない
+                return
+            }
             stripPMode.showColor(neopixel.rgb(0, 0, 0))
             mode = "P"
             return
