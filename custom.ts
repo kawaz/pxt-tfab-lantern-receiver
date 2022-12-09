@@ -14,7 +14,7 @@ namespace TukubaLantern {
     let initialized = false
     let userInitialized = false
     let playStarted = false;
-    let stripPMode: neopixel.Strip = null
+    let strip: neopixel.Strip = null
     let userInit: () => void = null
     export let mode: "U" | "P" = "U"
     export let groupId: string = "1"
@@ -23,15 +23,15 @@ namespace TukubaLantern {
     export let intervalN: number = 1;
     export let interval: number = intervalBase * intervalN;
     let colors: Array<number> = [];
-    let colorMap = [
-        neopixel.rgb(0, 0, 0),
-        neopixel.rgb(255, 0, 0),
-        neopixel.rgb(0, 255, 0),
-        neopixel.rgb(0, 0, 255),
-        neopixel.rgb(255, 255, 0),
-        neopixel.rgb(0, 255, 255),
-        neopixel.rgb(255, 255, 0),
-        neopixel.rgb(255, 255, 255),
+    export let colorMap = [
+        neopixel.rgb(0, 0, 0), //黒
+        neopixel.rgb(0, 0, 255), //青
+        neopixel.rgb(255, 0, 0), //赤
+        neopixel.rgb(255, 0, 255), //紫
+        neopixel.rgb(0, 255, 0), //緑
+        neopixel.rgb(0, 255, 255), //水色
+        neopixel.rgb(255, 255, 0), //黄色
+        neopixel.rgb(255, 255, 255), //白
     ]
 
     function lanternRadioGroup(rg: number) {
@@ -89,8 +89,8 @@ namespace TukubaLantern {
         // 無線で受け取った文字列をパースさせる
         radio.onReceivedString(inputData)
         // LEDの初期化
-        stripPMode = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
-        stripPMode.showColor(neopixel.rgb(0, 0, 0))
+        strip = neopixel.create(DigitalPin.P1, 16, NeoPixelMode.RGB)
+        resetStrip()
         // 起動時にグループIDを表示する
         basic.showString(groupId_)
         basic.pause(200)
@@ -106,6 +106,15 @@ namespace TukubaLantern {
             userInit()
         }
         userInitialized = true
+    }
+
+    function resetStrip() {
+        // LEDを全て消す
+        strip.clear()
+        // 色を全て白に変更
+        for(let i=0; i<16; i++) {
+            strip.setPixelColor(i, colorMap[7])
+        }
     }
 
     //% blockId="lantern_initialized"
@@ -132,7 +141,7 @@ namespace TukubaLantern {
                 inputData("U")
                 return
             }
-            stripPMode.showColor(colors.pop())
+            strip.showColor(colors.pop())
             basic.pause(interval)
         }
     }
@@ -148,7 +157,7 @@ namespace TukubaLantern {
                 // 色データが無ければプログラムモードに移行しない
                 return
             }
-            stripPMode.showColor(neopixel.rgb(0, 0, 0))
+            resetStrip()
             mode = "P"
             return
         }
@@ -156,7 +165,7 @@ namespace TukubaLantern {
             if (mode == "P") {
                 // ユーザモードへの復帰はリセットで行う。
                 // リセットだけだとLEDが最後の状態のままになってしまうので消しておく
-                stripPMode.showColor(neopixel.rgb(0, 0, 0))
+                resetStrip()
                 // 作品の「最初だけ」をグローバルスコープで実行する方法が他に無い為
                 control.reset()
             }
